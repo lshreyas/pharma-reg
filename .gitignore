@@ -1,6 +1,9 @@
 # macOS
 .DS_Store
 
+# Claude Code local settings
+.claude/
+
 # Archived copy of mocks/ — the folder is source of truth
 mocks.zip
 
