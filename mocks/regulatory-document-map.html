@@ -1,0 +1,479 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Drug Program — Regulatory Document Map</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap');
+
+  :root{
+    --ink:#14181D;
+    --paper:#FBFAF8;
+    --line:#DDE0E2;
+    --dim:#6B7580;
+    --card:#FFFFFF;
+    /* phase palette — each encodes a lifecycle stage */
+    --p-pre:#B07B2C;   /* preclinical / IND-enabling — amber */
+    --p-clin:#2F6F6A;  /* clinical — teal */
+    --p-app:#3C5AA6;   /* marketing application — indigo */
+    --p-post:#7A4A7E;  /* post-approval / lifecycle — plum */
+    --pre-wash:#F6ECD9;
+    --clin-wash:#DEEDEB;
+    --app-wash:#E1E7F4;
+    --post-wash:#EDE2EE;
+  }
+
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  html,body{margin:0;background:var(--paper);color:var(--ink)}
+  body{
+    font-family:'Newsreader',Georgia,serif;
+    padding:24px clamp(14px,3.5vw,40px) 60px;
+    max-width:1240px;margin:0 auto;
+  }
+  .mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
+
+  header{border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:6px}
+  .kicker{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+  h1{font-size:clamp(22px,3.4vw,32px);font-weight:600;letter-spacing:-.01em;margin:6px 0 0}
+  .sub{font-size:15px;color:#3a4650;max-width:680px;margin:10px 0 0;line-height:1.5}
+
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:16px 0 22px;font-family:'IBM Plex Mono',monospace;font-size:11.5px}
+  .legend span{display:inline-flex;align-items:center;gap:7px;color:#3a4650}
+  .swatch{width:11px;height:11px;border-radius:2px;flex:0 0 auto}
+
+  .layout{display:grid;grid-template-columns:minmax(300px,1fr) minmax(320px,1.05fr);gap:26px;align-items:start}
+
+  /* ---- tree ---- */
+  .tree{font-size:15px}
+  .node{position:relative}
+  .row{
+    display:flex;align-items:flex-start;gap:8px;
+    padding:6px 9px;border-radius:6px;cursor:pointer;
+    border:1px solid transparent;transition:background .14s,border-color .14s;
+    border-left:3px solid var(--nodecol,var(--line));
+  }
+  .row:hover{background:#fff}
+  .row.sel{background:#fff;border-color:var(--line);border-left-color:var(--nodecol);box-shadow:0 1px 0 rgba(20,24,29,.04)}
+  .caret{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);
+    width:14px;flex:0 0 auto;margin-top:3px;user-select:none;transition:transform .15s;
+  }
+  .caret.open{transform:rotate(90deg)}
+  .caret.leaf{opacity:0}
+  .rowmain{flex:1;min-width:0}
+  .rowtop{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .abbr{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--nodecol)}
+  .name{font-weight:500}
+  .len{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);margin-left:auto;white-space:nowrap}
+  .rowsub{font-size:12.5px;color:var(--dim);margin-top:1px;line-height:1.35}
+  .nest{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.04em;color:var(--nodecol);
+        background:var(--nodewash);border-radius:3px;padding:1px 5px;margin-top:4px;display:inline-block}
+  .children{margin-left:20px;padding-left:12px;border-left:1px dashed var(--line);
+            overflow:hidden;transition:height .2s ease}
+  .children.collapsed{display:none}
+
+  /* ---- detail panel ---- */
+  .panel{position:sticky;top:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .cardhead{padding:16px 18px;border-bottom:1px solid var(--line);border-top:4px solid var(--nodecol)}
+  .phasetag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--nodecol)}
+  .cardtitle{font-size:20px;font-weight:600;margin:6px 0 2px;letter-spacing:-.01em}
+  .cardabbr{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--dim)}
+  .cardblurb{font-size:14.5px;line-height:1.55;color:#33414c;padding:14px 18px;border-bottom:1px solid var(--line)}
+
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid var(--line)}
+  .stat{padding:11px 18px;border-bottom:1px solid var(--line)}
+  .stat:nth-child(odd){border-right:1px solid var(--line)}
+  .stat .k{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+  .stat .v{font-size:13.5px;margin-top:3px;line-height:1.35}
+
+  .sec{padding:14px 18px;border-bottom:1px solid var(--line)}
+  .sec:last-child{border-bottom:none}
+  .sec h4{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin:0 0 9px}
+  .comp{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px}
+  .comp li{font-size:13.5px;line-height:1.4;padding-left:15px;position:relative;color:#2a343d}
+  .comp li:before{content:"";position:absolute;left:0;top:7px;width:5px;height:5px;border-radius:50%;background:var(--nodecol)}
+  .auto{font-size:13.5px;line-height:1.55;color:#2a343d}
+  .auto .flag{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+              padding:2px 7px;border-radius:3px;margin-right:7px;vertical-align:1px}
+  .flag.high{background:var(--clin-wash);color:var(--p-clin)}
+  .flag.med{background:var(--pre-wash);color:var(--p-pre)}
+  .flag.low{background:#EEF0F1;color:var(--dim)}
+
+  .hint{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--dim);text-align:center;padding:30px 18px;line-height:1.6}
+
+  .foot{margin-top:26px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:var(--dim);line-height:1.55;font-family:'IBM Plex Mono',monospace}
+
+  @media (max-width:820px){
+    .layout{grid-template-columns:1fr;gap:18px}
+    .panel{position:static}
+    .len{display:none}
+  }
+</style>
+
+<header>
+  <div class="kicker">Regulatory Document Architecture</div>
+  <h1>A drug program, mapped as documents</h1>
+  <p class="sub">From first-in-human clearance to post-market lifecycle. Click any document to see its core components, typical scale, who writes it, and where it sits in the automation opportunity. The dashed links show how documents <em>nest into</em> one another — the reuse structure that makes this domain tractable for applied-LLM tooling.</p>
+</header>
+
+<div class="legend">
+  <span><i class="swatch" style="background:var(--p-pre)"></i>Preclinical / IND-enabling</span>
+  <span><i class="swatch" style="background:var(--p-clin)"></i>Clinical</span>
+  <span><i class="swatch" style="background:var(--p-app)"></i>Marketing application</span>
+  <span><i class="swatch" style="background:var(--p-post)"></i>Post-approval / lifecycle</span>
+</div>
+
+<div class="layout">
+  <div class="tree" id="tree"></div>
+  <div class="panel">
+    <div class="card" id="card">
+      <div class="hint">Select a document from the map to inspect it.</div>
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  Lengths are typical/median figures and vary widely by product, phase, and modality — treat as order-of-magnitude, not precision. Sources synthesized from ICH E3/E6/E2C/M4 guidelines, FDA/EMA guidance, and peer-reviewed analyses (BMJ Open, Cochrane). Automation ratings reflect volume × structure × template-fit vs. required clinical judgment.
+</div>
+
+<script>
+const PHASE = {
+  pre:{col:'var(--p-pre)',wash:'var(--pre-wash)',label:'Preclinical / IND-enabling'},
+  clin:{col:'var(--p-clin)',wash:'var(--clin-wash)',label:'Clinical'},
+  app:{col:'var(--p-app)',wash:'var(--app-wash)',label:'Marketing application'},
+  post:{col:'var(--p-post)',wash:'var(--post-wash)',label:'Post-approval / lifecycle'},
+};
+
+// The document tree. Each node: id,label,abbr,phase,len(short),blurb,
+// components[],length(full),authors,time,standard,autoLevel,auto,nest(optional)
+const TREE = {
+  id:'program', label:'Drug Program', abbr:'PROGRAM', phase:'pre', len:'~10–15 yrs',
+  blurb:'The full arc of bringing one molecule from discovery to market and through its post-approval life. Every box below is a document (or family of documents) generated along the way. A single program can produce tens of thousands of pages across hundreds of documents.',
+  components:['Discovery & preclinical research','Clinical development (Phase I–III)','Marketing application & review','Post-approval lifecycle management'],
+  length:'Tens of thousands of pages across the program',
+  authors:'Cross-functional: research, clinical, biostatistics, regulatory affairs, CMC/quality, safety/PV, medical writing',
+  time:'10–15 years discovery to approval',
+  standard:'ICH framework end-to-end; CTD/eCTD for submissions',
+  autoLevel:'high',
+  auto:'The program is a document factory. The wedge logic: attack the highest-volume, most-templated, most-structured documents first (safety narratives), then expand across the submission.',
+  children:[
+    {
+      id:'ind', label:'Investigational New Drug application', abbr:'IND', phase:'pre', len:'assembly, not one doc',
+      blurb:'The gateway filing to the FDA that authorizes first-in-human testing. Not a single document — a package that bundles the protocol, Investigator’s Brochure, CMC data, and pharm/tox data behind a set of cover forms. Trials may begin 30 days after FDA receipt unless placed on hold.',
+      components:['Cover forms (FDA 1571 / 1572 / 3674)','Introductory statement & general investigational plan (~2–3 pp)','Investigator’s Brochure','Clinical protocol(s)','CMC information','Pharmacology & toxicology data','Previous human experience'],
+      length:'Initial IND commonly hundreds to low-thousands of pages depending on program',
+      authors:'Regulatory affairs (assembly), with clinical, CMC, nonclinical, and medical writing',
+      time:'Weeks to months to assemble; 30-day FDA review clock',
+      standard:'21 CFR 312.23; filed in eCTD for commercial INDs',
+      autoLevel:'med',
+      auto:'The IND is mostly assembly and cross-referencing of documents authored elsewhere. Automation value is in consistency-checking and auto-compiling components rather than net-new drafting.',
+      children:[
+        {
+          id:'ib', label:'Investigator’s Brochure', abbr:'IB', phase:'pre', len:'~100–200 pp',
+          blurb:'A living compilation of everything known about the investigational product — clinical and nonclinical — given to every investigator running a trial. Updated at least annually as data accrues.',
+          components:['Physical/chemical/pharmaceutical properties','Nonclinical pharmacology, PK, toxicology','Effects in humans (as data accrues)','Summary of data & guidance for the investigator','Safety reference information (reference safety information / RSI)'],
+          length:'Typically ~100–200 pages; grows over the program',
+          authors:'Medical writing + clinical pharmacology + safety',
+          time:'Initial draft weeks; annual updates',
+          standard:'ICH E6 (GCP)',
+          autoLevel:'med',
+          auto:'Highly reusable across trials and updated on a cycle — good target for structured content reuse and update-propagation rather than one-off generation.'
+        },
+        {
+          id:'protocol', label:'Clinical Trial Protocol', abbr:'PROTOCOL', phase:'pre', len:'~100–200+ pp',
+          blurb:'The design blueprint for a single trial: what question it asks, who’s eligible, what happens to them, and how the data will be analyzed. Every downstream trial document derives from it.',
+          components:['Objectives & endpoints','Study design & schema','Eligibility (inclusion/exclusion)','Treatment & dosing','Schedule of assessments','Statistical considerations','Safety monitoring & stopping rules'],
+          length:'~100–200+ pages; complexity rising over time (CRFs grew 55→180 pp, 1999–2005, Tufts CSDD)',
+          authors:'Clinical development lead + biostatistics + medical writing + regulatory',
+          time:'Months; amendments cost ~$250k–$450k each to implement (Tufts)',
+          standard:'ICH E6 (GCP); SPIRIT reporting; increasingly structured/digital protocols',
+          autoLevel:'med',
+          auto:'The protocol is the source-of-truth other docs derive from. High value in generating the ICF, plain-language summaries, and CSR methods sections *from* the protocol — protocol-to-document transformation.',
+          nest:'derives → ICF, SAP, CSR methods'
+        },
+        {
+          id:'icf', label:'Informed Consent Form', abbr:'ICF', phase:'pre', len:'~10–20 pp',
+          blurb:'The participant-facing document explaining the trial, its risks, and their rights — derived directly from the protocol but written for a lay audience.',
+          components:['Purpose & procedures','Risks & benefits','Alternatives','Confidentiality','Voluntary participation & withdrawal','Contacts & compensation'],
+          length:'~10–20 pages (US); readability-constrained',
+          authors:'Clinical/regulatory + medical writing; IRB/EC reviewed',
+          time:'Days to weeks per site/version',
+          standard:'21 CFR 50; ICH E6; readability requirements',
+          autoLevel:'high',
+          auto:'A near-ideal transformation task: protocol → lay-language consent, with reading-level constraints. Repetitive across sites and amendments. Strong LLM fit with human/IRB review.',
+          nest:'transformed from → Protocol'
+        },
+        {
+          id:'sap', label:'Statistical Analysis Plan', abbr:'SAP', phase:'pre', len:'median ~15 pp',
+          blurb:'Pre-specifies exactly how the trial data will be analyzed, locked before unblinding to prevent cherry-picking. Feeds the tables, listings, and figures (TLFs) that populate the CSR.',
+          components:['Analysis populations','Endpoints & estimands','Statistical methods','Handling of missing data','Interim analyses','Table/listing/figure shells (TLFs)'],
+          length:'Median ~15 pages; can reach ~85',
+          authors:'Biostatistics; reviewed by clinical & regulatory',
+          time:'Weeks; finalized before database lock',
+          standard:'ICH E9 (+E9 R1 estimands); CDISC ADaM downstream',
+          autoLevel:'low',
+          auto:'Judgment-heavy and statistically precise — low autonomous-generation fit, but its structured outputs (TLFs, ADaM) are the *inputs* that make CSR and narrative automation possible.',
+          nest:'feeds → CSR, Patient Narratives'
+        },
+        {
+          id:'csr', label:'Clinical Study Report', abbr:'CSR', phase:'clin', len:'~1,000–3,000 pp',
+          blurb:'The definitive report of a single trial — the full write-up of what happened and what it means. Structure is mandated by ICH E3. This is the second automation wedge after narratives, because most of it is data-to-text synthesis into a fixed skeleton.',
+          components:['Synopsis','Ethics & investigators','Objectives & methodology','Efficacy results','Safety results (+ patient narratives)','Discussion & conclusions','Appendices: protocol, SAP, CRFs, listings'],
+          length:'250–1,000+ pp excluding appendices; mean 1,854 pp (BMJ Open, 78 CSRs) to 2,917 pp (Cochrane, 8 CSRs) with appendices',
+          authors:'Medical writing, from biostatistics TLFs, with clinical/safety/regulatory review',
+          time:'~180 person-hours for a first draft traditionally (Merck) — cut to ~80 with AI',
+          standard:'ICH E3; CDISC (SDTM/ADaM) data',
+          autoLevel:'high',
+          auto:'Merck/McKinsey cut CSR first-draft time from ~180→80 hrs (~56%) and errors ~50% using generative AI. Fixed E3 template + structured statistical inputs = strong data-to-text fit. Wedge #2.',
+          nest:'filed into → Module 5',
+          children:[
+            {
+              id:'narrative', label:'Patient Safety Narratives', abbr:'NARRATIVES', phase:'clin', len:'1–4 pp each',
+              blurb:'Short prose write-ups of individual patients’ adverse events, generated from the structured safety database. A single CSR can contain up to ~1,000 of them. This is the canonical first automation wedge — highest volume, most structured, least bespoke.',
+              components:['Subject demographics','Dosing & exposure','Adverse event details (term, grade, seriousness)','Relevant labs & medical history','Causality & outcome','Action taken'],
+              length:'1–4 pages each; up to ~1,000 per CSR',
+              authors:'Medical writing, from SDTM/ADaM safety data',
+              time:'Traditionally ~4 hrs each → seconds with grounded generation',
+              standard:'ICH E3 §12.3 / §14; CIOMS conventions',
+              autoLevel:'high',
+              auto:'The beachhead. Yseop/Lilly report ~10,000 hours saved across 2,300 narratives. Structured input, fixed template, massive repetition. This is exactly what the narrative-gen mockup demonstrates.',
+              nest:'embedded in → CSR §12.3 / §14'
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id:'maa', label:'Marketing Application', abbr:'NDA / BLA / MAA', phase:'app', len:'100,000+ pp',
+      blurb:'The application to sell the drug: NDA (small molecules, FDA), BLA (biologics, FDA), MAA (EMA). All are organized into the CTD/eCTD five-module structure. A complete application can exceed 100,000 pages.',
+      components:['CTD Modules 1–5','Integrated Summary of Safety (ISS)','Integrated Summary of Efficacy (ISE)','Proposed labeling','Application fees & forms'],
+      length:'Can exceed 100,000 pages total',
+      authors:'Regulatory affairs orchestrates; all functions contribute',
+      time:'Assembly over many months; FDA review 6–10 months',
+      standard:'CTD/eCTD (ICH M4); 21 CFR 314.50 (ISS/ISE)',
+      autoLevel:'med',
+      auto:'Too big to attack whole. The play is component-level: automate the summary modules and consistency across the assembly, not the entire application at once.',
+      children:[
+        {
+          id:'ctd', label:'Common Technical Document (electronic)', abbr:'CTD / eCTD', phase:'app', len:'5 modules',
+          blurb:'The harmonized five-module architecture every major regulator accepts. Assemble once, file across FDA/EMA/PMDA — only Module 1 changes by region. The eCTD is its mandatory electronic (XML-indexed) form.',
+          components:['Module 1 — Regional administrative','Module 2 — Summaries','Module 3 — Quality / CMC','Module 4 — Nonclinical','Module 5 — Clinical'],
+          length:'The organizing structure of the whole submission',
+          authors:'Regulatory operations / publishing (Veeva, Lorenz, Certara)',
+          time:'Continuous assembly; publishing is a distinct QC step',
+          standard:'ICH M4; eCTD v3.2.2 → v4.0 (HL7 RPS)',
+          autoLevel:'med',
+          auto:'The standardization *is* the enabling fact for the whole domain — fixed structure, controlled vocabularies, XML backbone. Incumbents (Veeva, Certara) own publishing; the wedge is authoring intelligence on top.',
+          children:[
+            {
+              id:'m1', label:'Module 1 — Regional Administrative', abbr:'MODULE 1', phase:'app', len:'region-specific',
+              blurb:'The only non-harmonized module: region-specific forms, cover letters, and — importantly — the proposed labeling. This is where the same dossier splits into US vs. EU wrappers.',
+              components:['Application forms','Cover letters','Proposed labeling (USPI / SmPC)','Regional administrative info','Prescribing information drafts'],
+              length:'Varies by region; the labeling is the substantive piece',
+              authors:'Regulatory affairs (regional)',
+              time:'Varies',
+              standard:'Region-specific (FDA / EMA / PMDA)',
+              autoLevel:'med',
+              auto:'The labeling inside M1 is highly structured (SPL) and cascades from the CCDS — good automation target. The admin forms are thin.',
+              nest:'contains → Labeling (USPI/SmPC)'
+            },
+            {
+              id:'m2', label:'Module 2 — Summaries', abbr:'MODULE 2', phase:'app', len:'~200–600 pp',
+              blurb:'The overview layer reviewers read first. It restates Modules 3/4/5 — and by rule may introduce no new data. That “summarize your own corpus against a strict template” property makes it the third automation wedge.',
+              components:['2.3 Quality Overall Summary (≤40 pp; ≤80 biotech)','2.4 Nonclinical Overview','2.5 Clinical Overview (~30 pp)','2.6 Nonclinical Written & Tabulated Summaries (≤100–150 pp)','2.7 Clinical Summary (50–400 pp)'],
+              length:'~200–600 pages total across the summaries',
+              authors:'Medical writing + regulatory + CMC (for QOS)',
+              time:'Weeks to months near submission',
+              standard:'ICH M4 (M4Q/M4S/M4E)',
+              autoLevel:'high',
+              auto:'Wedge #3. Pure summarization of Modules 3/4/5 with a hard “no new data” constraint — an ideal RAG/summarization task grounded in the sponsor’s own lower modules.',
+              nest:'summarizes → Modules 3, 4, 5'
+            },
+            {
+              id:'m3', label:'Module 3 — Quality / CMC', abbr:'MODULE 3', phase:'app', len:'very large',
+              blurb:'Chemistry, Manufacturing & Controls: how the drug substance and product are made, tested, and kept stable. Often the largest and most time-intensive module for biologics.',
+              components:['Drug substance (S)','Drug product (P)','Manufacturing process & controls','Specifications & analytical methods','Stability data','Container/closure'],
+              length:'Often the largest module for biologics; measured in person-months',
+              authors:'CMC / analytical / quality teams',
+              time:'Stability & process-validation sections can take 6+ months',
+              standard:'ICH Q-series; GMP; moving toward IDMP structured data',
+              autoLevel:'low',
+              auto:'Highly technical, data- and equipment-specific, lower repetition — weaker generation fit. Value is in structured data management and consistency, not prose drafting.'
+            },
+            {
+              id:'m4', label:'Module 4 — Nonclinical', abbr:'MODULE 4', phase:'app', len:'thousands of pp',
+              blurb:'The full animal and lab study reports — pharmacology, PK, and toxicology — that justified going into and staying in humans.',
+              components:['Pharmacology study reports','Pharmacokinetics study reports','Toxicology study reports','Study report appendices'],
+              length:'Thousands of pages of study reports',
+              authors:'Nonclinical / toxicology + medical writing',
+              time:'Accrues across preclinical program',
+              standard:'ICH M4S; SEND (CDISC nonclinical)',
+              autoLevel:'med',
+              auto:'Individual study reports are templated and could be drafted from structured SEND data; the module as a whole is a summarization source for 2.4/2.6.'
+            },
+            {
+              id:'m5', label:'Module 5 — Clinical', abbr:'MODULE 5', phase:'app', len:'largest (small mol.)',
+              blurb:'Where all the CSRs live, plus the integrated safety/efficacy summaries and patient data. Often the largest module by raw page count for a small-molecule NDA.',
+              components:['Clinical Study Reports (CSRs)','Integrated Summary of Safety (ISS)','Integrated Summary of Efficacy (ISE)','Literature references','Case report forms & patient listings'],
+              length:'Often the single largest module by page count',
+              authors:'Medical writing + biostatistics + clinical',
+              time:'Accrues across clinical program',
+              standard:'ICH E3; CDISC SDTM/ADaM; Define-XML',
+              autoLevel:'high',
+              auto:'Contains the CSRs and integrated summaries — the densest cluster of data-to-text work in the whole submission and the natural home of the narrative→CSR→summary wedge sequence.',
+              nest:'receives → CSRs'
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id:'label', label:'Labeling', abbr:'USPI / SmPC / CCDS', phase:'post', len:'~10–50 pp',
+      blurb:'The legally-controlled description of the drug — what it’s for, how to use it, its risks. The company core data sheet (CCDS) is the global source of truth; the USPI (US) and SmPC (EU) are the regional renderings that sit in Module 1.',
+      components:['Highlights (US PLR)','Indications & usage','Dosage & administration','Contraindications','Warnings & precautions (incl. boxed warning)','Adverse reactions','Use in specific populations'],
+      length:'~10–50 pages depending on product & region',
+      authors:'Regulatory + medical + safety; negotiated with the agency',
+      time:'Iterated through review; updated across the lifecycle',
+      standard:'US Physician Labeling Rule; SPL (HL7 XML); EU SmPC template',
+      autoLevel:'high',
+      auto:'Structured (SPL XML), templated, and cascades from the CCDS to USPI/SmPC and across variations — strong fit for structured generation and change-propagation with tight human control.',
+      nest:'renders into → Module 1'
+    },
+    {
+      id:'pv', label:'Safety / Pharmacovigilance', abbr:'PV', phase:'post', len:'ongoing',
+      blurb:'The continuous obligation to monitor and report the drug’s safety once people are taking it — from single case reports to periodic benefit-risk evaluations.',
+      components:['ICSRs — individual case safety reports (E2B XML)','PSUR / PBRER — periodic benefit-risk (E2C)','DSUR — development safety (E2F)','PADER — US periodic','RMP / REMS — risk management'],
+      length:'ICSRs are short & continuous; PSUR/PBRER can run hundreds of pages',
+      authors:'Pharmacovigilance / drug safety + medical writing',
+      time:'ICSRs on strict clocks (7/15 days); PSUR/PBRER on periodic cycle',
+      standard:'ICH E2B/E2C/E2F; CIOMS; MedDRA coding',
+      autoLevel:'high',
+      auto:'High-volume, templated, deadline-driven. Strong fit for case narrative generation, literature screening for PSURs, and signal summarization — with the same accuracy/traceability constraints as CSR narratives.',
+      children:[
+        {
+          id:'icsr', label:'Individual Case Safety Report', abbr:'ICSR', phase:'post', len:'short, high-volume',
+          blurb:'A single adverse-event case report, exchanged between companies and regulators as E2B XML, often including a case narrative. Millions are filed industry-wide each year.',
+          components:['Patient & reporter info','Suspect & concomitant drugs','Adverse event(s) & seriousness','Case narrative','Causality assessment','MedDRA-coded terms'],
+          length:'Short per case; enormous in aggregate',
+          authors:'Drug safety associates + medical review',
+          time:'Regulatory clocks: 7-day (fatal/life-threatening) / 15-day (serious)',
+          standard:'ICH E2B(R3); MedDRA',
+          autoLevel:'high',
+          auto:'Same grounded-narrative pattern as CSR narratives, at even higher volume and under time pressure — a natural extension of the narrative wedge into the post-market world.',
+          nest:'same pattern as → Patient Narratives'
+        },
+        {
+          id:'psur', label:'PSUR / PBRER', abbr:'PSUR', phase:'post', len:'~hundreds of pp',
+          blurb:'The periodic benefit-risk report for a marketed product — aggregating all safety data over an interval into a structured evaluation.',
+          components:['Worldwide exposure estimates','Signal & risk evaluation','Literature summary','Benefit-risk analysis','Line listings & summary tabulations'],
+          length:'Tens to hundreds of pages',
+          authors:'Pharmacovigilance + medical writing',
+          time:'On a fixed periodic cycle (e.g., 6-monthly → yearly → 3-yearly)',
+          standard:'ICH E2C(R2)',
+          autoLevel:'high',
+          auto:'Templated aggregate report with heavy literature screening and data summarization — strong fit for RAG-based drafting and literature triage.'
+        }
+      ]
+    },
+    {
+      id:'lcm', label:'Lifecycle Management', abbr:'VARIATIONS', phase:'post', len:'ongoing',
+      blurb:'The stream of post-approval submissions that keep the license current: new indications, manufacturing changes, and required periodic reports.',
+      components:['Variations / supplements (sNDA / sBLA)','Annual reports','Manufacturing changes','New indication filings','Renewals'],
+      length:'Varies from minor notifications to full new-indication packages',
+      authors:'Regulatory affairs + relevant function',
+      time:'Continuous across the marketed life of the product',
+      standard:'Region-specific variation frameworks; eCTD lifecycle',
+      autoLevel:'med',
+      auto:'Each variation reuses and updates prior submission content — a strong case for structured content reuse, change-impact analysis, and consistency-checking against the existing dossier.',
+      nest:'updates → prior CTD modules'
+    }
+  ]
+};
+
+// ---- render ----
+const tree = document.getElementById('tree');
+const card = document.getElementById('card');
+let selected = null;
+
+function node(n, depth){
+  const wrap = document.createElement('div');
+  wrap.className='node';
+  const ph = PHASE[n.phase];
+  const row = document.createElement('div');
+  row.className='row';
+  row.style.setProperty('--nodecol', ph.col);
+  row.style.setProperty('--nodewash', ph.wash);
+  row.dataset.id = n.id;
+
+  const hasKids = n.children && n.children.length;
+  const caret = document.createElement('div');
+  caret.className='caret'+(hasKids?' open':' leaf');
+  caret.textContent = hasKids? '▸':'•';
+
+  const main = document.createElement('div');
+  main.className='rowmain';
+  const top = document.createElement('div');
+  top.className='rowtop';
+  top.innerHTML = '<span class="abbr">'+n.abbr+'</span><span class="name">'+n.label+'</span><span class="len">'+n.len+'</span>';
+  main.appendChild(top);
+  if(n.nest){
+    const nest=document.createElement('div');
+    nest.className='nest';nest.textContent=n.nest;
+    main.appendChild(nest);
+  }
+
+  row.appendChild(caret);
+  row.appendChild(main);
+  wrap.appendChild(row);
+
+  let kids;
+  if(hasKids){
+    kids=document.createElement('div');
+    kids.className='children';
+    n.children.forEach(c=>kids.appendChild(node(c,depth+1)));
+    wrap.appendChild(kids);
+  }
+
+  caret.addEventListener('click',(e)=>{
+    e.stopPropagation();
+    if(!hasKids) return;
+    kids.classList.toggle('collapsed');
+    caret.classList.toggle('open');
+  });
+  row.addEventListener('click',()=>select(n,row));
+
+  return wrap;
+}
+
+function stat(k,v){return '<div class="stat"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';}
+
+function select(n,row){
+  if(selected) selected.classList.remove('sel');
+  row.classList.add('sel'); selected=row;
+  const ph=PHASE[n.phase];
+  let comps = n.components.map(c=>'<li>'+c+'</li>').join('');
+  let nestSec = n.nest ? '<div class="sec"><h4>Nests / relates</h4><div class="auto mono" style="font-size:12.5px;color:'+ph.col+'">'+n.nest+'</div></div>' : '';
+  card.style.setProperty('--nodecol', ph.col);
+  card.innerHTML =
+    '<div class="cardhead">'+
+      '<div class="phasetag">'+ph.label+'</div>'+
+      '<div class="cardtitle">'+n.label+'</div>'+
+      '<div class="cardabbr">'+n.abbr+'</div>'+
+    '</div>'+
+    '<div class="cardblurb">'+n.blurb+'</div>'+
+    '<div class="stats">'+
+      stat('Typical length', n.length)+
+      stat('Time to produce', n.time)+
+      stat('Authored by', n.authors)+
+      stat('Governed by', n.standard)+
+    '</div>'+
+    '<div class="sec"><h4>Core components</h4><ul class="comp">'+comps+'</ul></div>'+
+    nestSec+
+    '<div class="sec"><h4>Automation angle</h4><div class="auto"><span class="flag '+n.autoLevel+'">'+
+      (n.autoLevel==='high'?'High fit':n.autoLevel==='med'?'Partial fit':'Low fit')+'</span>'+n.auto+'</div></div>';
+  card.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+tree.appendChild(node(TREE,0));
+// open with the program selected
+select(TREE, tree.querySelector('.row'));
+</script>

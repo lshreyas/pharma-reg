@@ -1,0 +1,24 @@
+# macOS
+.DS_Store
+
+# Archived copy of mocks/ — the folder is source of truth
+mocks.zip
+
+# Secrets and env
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local pipeline artifacts (not for publishing)
+data/
+!data/.gitkeep

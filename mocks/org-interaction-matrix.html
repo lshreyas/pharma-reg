@@ -1,0 +1,269 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Who Touches What — Pharma Org × Documents</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap');
+  :root{
+    --ink:#14181D;--paper:#FBFAF8;--line:#DDE0E2;--dim:#6B7580;--card:#fff;
+    --author:#2F6F6A;--contrib:#3C5AA6;--review:#B07B2C;--approve:#9B4C52;
+    --author-w:#DEEDEB;--contrib-w:#E1E7F4;--review-w:#F6ECD9;--approve-w:#F2E2E3;
+    /* lifecycle phase tints for column groups */
+    --pre:#F6ECD9;--clin:#DEEDEB;--app:#E1E7F4;--post:#EDE2EE;
+  }
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  html,body{margin:0;background:var(--paper);color:var(--ink)}
+  body{font-family:'Newsreader',Georgia,serif;padding:24px clamp(14px,3.5vw,40px) 60px;max-width:1300px;margin:0 auto}
+  header{border-bottom:2px solid var(--ink);padding-bottom:14px}
+  .kicker{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+  h1{font-size:clamp(22px,3.4vw,32px);font-weight:600;letter-spacing:-.01em;margin:6px 0 0}
+  .sub{font-size:15px;color:#3a4650;max-width:730px;margin:10px 0 0;line-height:1.55}
+  .sub b{color:var(--ink)}
+
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:16px 0 8px;font-family:'IBM Plex Mono',monospace;font-size:11.5px}
+  .legend span{display:inline-flex;align-items:center;gap:7px;color:#3a4650}
+  .glyph{width:16px;height:16px;border-radius:4px;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff}
+  .phaselegend{display:flex;flex-wrap:wrap;gap:14px;margin:4px 0 18px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim)}
+  .phaselegend span{display:inline-flex;align-items:center;gap:6px}
+  .pchip{width:11px;height:11px;border-radius:2px}
+
+  .matrixwrap{border:1px solid var(--line);border-radius:8px;background:#fff;overflow:auto}
+  table.mx{border-collapse:collapse;font-family:'IBM Plex Mono',monospace}
+  table.mx th,table.mx td{border:1px solid #EDEFF0}
+  .corner{position:sticky;left:0;top:0;z-index:6;background:#fff;min-width:184px;text-align:left;
+          font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);padding:8px 10px;vertical-align:bottom}
+  thead th.doc{position:sticky;top:0;z-index:4;background:#fff;height:150px;width:34px;padding:0}
+  .docinner{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;font-size:10.5px;color:#33414c;
+            padding:8px 3px;margin:0 auto;cursor:pointer;letter-spacing:.02em;height:100%;display:flex;align-items:center;border-bottom:3px solid var(--pcol)}
+  thead th.doc:hover .docinner{color:var(--ink)}
+  th.team{position:sticky;left:0;z-index:3;background:#fff;text-align:left;font-family:'Newsreader',serif;
+          font-weight:500;font-size:13.5px;color:#22282e;padding:8px 10px 8px 12px;min-width:184px;cursor:pointer;
+          border-left:3px solid var(--tcol,transparent)}
+  th.team small{display:block;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--dim);margin-top:2px;font-weight:400}
+  th.team:hover{background:#FCFBF9}
+  td.cell{width:34px;height:34px;text-align:center;vertical-align:middle;padding:0;cursor:default}
+  .r{width:20px;height:20px;border-radius:5px;margin:0 auto;display:flex;align-items:center;justify-content:center;
+     font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:#fff}
+  .empty{width:4px;height:4px;border-radius:50%;margin:0 auto;background:#E4E7E9}
+
+  .dimmed td.cell .r,.dimmed th.team{opacity:.22}
+  .dimmed td.cell .empty{opacity:.4}
+  tr.rowsel th.team{background:#FCFBF9}
+  td.colsel{background:#FAF8F4}
+
+  .detail{margin-top:22px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden;border-top:4px solid var(--accent,#566270)}
+  .ch{padding:15px 18px;border-bottom:1px solid var(--line)}
+  .ctag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent,#566270)}
+  .ct{font-size:20px;font-weight:600;margin:5px 0 2px;letter-spacing:-.01em}
+  .cmeta{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim);line-height:1.5}
+  .cbody{padding:6px 18px 14px}
+  .roleblock{padding:11px 0;border-bottom:1px solid var(--line)}
+  .roleblock:last-child{border-bottom:none}
+  .roletag{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+           padding:2px 8px;border-radius:4px;color:#fff;display:inline-block;margin-bottom:8px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-family:'IBM Plex Mono',monospace;font-size:11.5px;padding:4px 10px;border-radius:5px;
+        background:#F4F2EE;color:#33414c;white-space:nowrap;border:1px solid var(--line)}
+  .hint{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--dim);text-align:center;padding:26px;line-height:1.6}
+  .foot{margin-top:22px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:var(--dim);line-height:1.55;font-family:'IBM Plex Mono',monospace}
+  .toggle{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);margin:12px 0 0;line-height:1.6}
+  .toggle b{color:var(--ink)}
+</style>
+
+<header>
+  <div class="kicker">Operating Model · Who Touches What</div>
+  <h1>The org, mapped onto the documents</h1>
+  <p class="sub">A drug dossier is produced by a <b>cross-functional assembly line</b>, not a writing team. Each row is a functional group; each column is a document. A marked cell shows that group's role: <b>author</b> (owns the draft), <b>contributor</b> (supplies data or sections), <b>reviewer</b>, or <b>approver</b> (signs off). Click a <b>group</b> to see its footprint, or a <b>document</b> to see who assembles it.</p>
+</header>
+
+<div class="legend" id="legend"></div>
+<div class="phaselegend">
+  <span><i class="pchip" style="background:#C7A24C"></i>Preclinical / IND</span>
+  <span><i class="pchip" style="background:#2F6F6A"></i>Clinical</span>
+  <span><i class="pchip" style="background:#3C5AA6"></i>Application</span>
+  <span><i class="pchip" style="background:#7A4A7E"></i>Post-approval</span>
+</div>
+
+<div class="matrixwrap"><table class="mx" id="mx"></table></div>
+<div class="toggle" id="toggle"></div>
+
+<div class="detail"><div class="card" id="card"><div class="hint">Select a group or a document to inspect it.</div></div></div>
+
+<div class="foot">
+  Roles are representative of a typical mid-to-large biopharma operating model; titles and boundaries vary by company (some merge Regulatory Ops into Regulatory Affairs, or Drug Safety into a broader PV org). "Author" often means "orchestrates + writes," with Medical Writing doing the actual drafting from others' inputs. The point is the interaction pattern, not any one org chart.
+</div>
+
+<script>
+const ROLES={
+  A:{key:'author',label:'Author / owner',col:'var(--author)',w:'var(--author-w)',glyph:'A'},
+  C:{key:'contrib',label:'Contributor',col:'var(--contrib)',w:'var(--contrib-w)',glyph:'C'},
+  R:{key:'review',label:'Reviewer',col:'var(--review)',w:'var(--review-w)',glyph:'R'},
+  S:{key:'approve',label:'Approver / signs off',col:'var(--approve)',w:'var(--approve-w)',glyph:'S'},
+};
+
+// documents (columns) in rough lifecycle order, with phase color
+const COLS=[
+  {id:'Protocol',full:'Clinical Trial Protocol',phase:'pre',pcol:'#C7A24C'},
+  {id:'IB',full:'Investigator’s Brochure',phase:'pre',pcol:'#C7A24C'},
+  {id:'IND',full:'IND application',phase:'pre',pcol:'#C7A24C'},
+  {id:'ICF',full:'Informed Consent Form',phase:'pre',pcol:'#C7A24C'},
+  {id:'SAP',full:'Statistical Analysis Plan',phase:'clin',pcol:'#2F6F6A'},
+  {id:'CSR',full:'Clinical Study Report',phase:'clin',pcol:'#2F6F6A'},
+  {id:'ICSR',full:'Individual Case Safety Report',phase:'clin',pcol:'#2F6F6A'},
+  {id:'ISS/ISE',full:'Integrated Summaries of Safety / Efficacy',phase:'app',pcol:'#3C5AA6'},
+  {id:'Mod 2',full:'CTD Module 2 — Summaries',phase:'app',pcol:'#3C5AA6'},
+  {id:'Mod 3',full:'CTD Module 3 — Quality / CMC',phase:'app',pcol:'#3C5AA6'},
+  {id:'NDA/BLA',full:'Marketing Application (eCTD assembly)',phase:'app',pcol:'#3C5AA6'},
+  {id:'Label',full:'Labeling (USPI / SmPC)',phase:'app',pcol:'#3C5AA6'},
+  {id:'PSUR',full:'PSUR / PBRER (periodic safety)',phase:'post',pcol:'#7A4A7E'},
+  {id:'RMP',full:'Risk Management Plan / REMS',phase:'post',pcol:'#7A4A7E'},
+  {id:'Variations',full:'Post-approval variations / supplements',phase:'post',pcol:'#7A4A7E'},
+];
+
+// functional groups (rows), each with the documents they touch and the role played
+const TEAMS=[
+  {id:'Clinical Development', sub:'clinical science / medical', tcol:'#2F6F6A',
+   about:'Owns the scientific design of the program and the clinical interpretation of results. Sets the questions the documents answer.',
+   roles:{Protocol:'A', IB:'C', IND:'C', CSR:'C', 'ISS/ISE':'C', 'Mod 2':'C', 'NDA/BLA':'C', Label:'C', RMP:'C'}},
+  {id:'Medical Writing', sub:'scientific / regulatory writing', tcol:'#2F6F6A',
+   about:'The connective tissue of the whole system — turns structured data and SME inputs into the actual document text. The function most directly leveraged by drafting automation.',
+   roles:{Protocol:'A', IB:'A', ICF:'A', CSR:'A', 'ISS/ISE':'A', 'Mod 2':'A', PSUR:'A', Label:'C', RMP:'C'}},
+  {id:'Biostatistics', sub:'statistics / stat programming', tcol:'#3C5AA6',
+   about:'Owns the statistical analysis plan and produces the tables, listings, and figures (TLFs) from CDISC datasets that populate the CSR, summaries, and label.',
+   roles:{SAP:'A', Protocol:'C', CSR:'C', 'ISS/ISE':'A', 'Mod 2':'C', 'NDA/BLA':'C', Label:'C'}},
+  {id:'Regulatory Affairs', sub:'strategy + submissions', tcol:'#9B4C52',
+   about:'Owns the relationship with the agency and the overall submission strategy. Approves what goes in and orchestrates the marketing application.',
+   roles:{IND:'A', 'NDA/BLA':'A', 'Mod 2':'R', Label:'A', Protocol:'R', CSR:'R', Variations:'A', RMP:'R', PSUR:'R'}},
+  {id:'Regulatory Operations', sub:'publishing / eCTD', tcol:'#9B4C52',
+   about:'Assembles, validates, and publishes the eCTD. Owns submission mechanics and format compliance rather than content.',
+   roles:{'NDA/BLA':'A', IND:'C', 'Mod 2':'C', 'Mod 3':'C', Variations:'C'}},
+  {id:'Drug Safety / PV', sub:'pharmacovigilance', tcol:'#B07B2C',
+   about:'Owns individual and aggregate safety. Generates case narratives and the periodic benefit-risk documents; a major consumer of the same narrative-generation engine as the CSR.',
+   roles:{ICSR:'A', PSUR:'A', RMP:'A', CSR:'C', 'ISS/ISE':'C', IB:'C', Label:'C'}},
+  {id:'CMC / Quality', sub:'chemistry, mfg & controls', tcol:'#4A7A52',
+   about:'Owns the quality/manufacturing story. Authors Module 3 and the quality summary; largely a separate track from the clinical documents.',
+   roles:{'Mod 3':'A', IND:'C', 'Mod 2':'C', 'NDA/BLA':'C', Variations:'C'}},
+  {id:'Nonclinical', sub:'pharmacology / toxicology', tcol:'#C7A24C',
+   about:'Runs the animal and lab studies and authors their reports; supplies the nonclinical content summarized upward and the mechanism-of-action narrative.',
+   roles:{IB:'C', IND:'C', 'Mod 2':'C', Label:'C'}},
+  {id:'Clinical Operations', sub:'trial execution', tcol:'#2F6F6A',
+   about:'Runs the trials at sites. Consumes the protocol and IB and operationalizes the ICF; less a document author than a document user and data source.',
+   roles:{Protocol:'C', ICF:'C', IB:'R'}},
+  {id:'Medical / Signatory', sub:'sponsor medical sign-off', tcol:'#9B4C52',
+   about:'Senior medical accountability. Provides final medical sign-off on high-stakes documents — the human approver at the end of the chain.',
+   roles:{CSR:'S', Protocol:'S', 'ISS/ISE':'S', Label:'S', RMP:'S', PSUR:'S', IB:'S'}},
+];
+
+// ---- build ----
+const colIndex={}; COLS.forEach((c,i)=>colIndex[c.id]=i);
+
+const legend=document.getElementById('legend');
+Object.values(ROLES).forEach(r=>{
+  const el=document.createElement('span');
+  el.innerHTML='<i class="glyph" style="background:'+r.col+'">'+r.glyph+'</i>'+r.label;
+  legend.appendChild(el);
+});
+
+const mx=document.getElementById('mx');
+const thead=document.createElement('thead');
+const htr=document.createElement('tr');
+const corner=document.createElement('th');corner.className='corner';corner.textContent='Group ╲ Document';
+htr.appendChild(corner);
+COLS.forEach((c,ci)=>{
+  const th=document.createElement('th');th.className='doc';th.dataset.ci=ci;
+  const inner=document.createElement('div');inner.className='docinner';inner.textContent=c.id;
+  inner.title=c.full;inner.style.setProperty('--pcol',c.pcol);
+  th.appendChild(inner);
+  th.addEventListener('click',()=>selectDoc(ci));
+  htr.appendChild(th);
+});
+thead.appendChild(htr);mx.appendChild(thead);
+
+const tbody=document.createElement('tbody');
+TEAMS.forEach((t,ti)=>{
+  const tr=document.createElement('tr');tr.dataset.ti=ti;
+  const th=document.createElement('th');th.className='team';th.style.setProperty('--tcol',t.tcol);
+  th.innerHTML=t.id+'<small>'+t.sub+'</small>';
+  th.addEventListener('click',()=>selectTeam(ti));
+  tr.appendChild(th);
+  COLS.forEach((c,ci)=>{
+    const td=document.createElement('td');td.className='cell';td.dataset.ci=ci;td.dataset.ti=ti;
+    const role=t.roles[c.id];
+    if(role){
+      const r=ROLES[role];
+      const d=document.createElement('div');d.className='r';d.style.background=r.col;d.textContent=r.glyph;
+      d.title=t.id+' — '+r.label+' — '+c.full;
+      td.appendChild(d);
+    }else{const e=document.createElement('div');e.className='empty';td.appendChild(e);}
+    tr.appendChild(td);
+  });
+  tbody.appendChild(tr);
+});
+mx.appendChild(tbody);
+
+// stat line in toggle
+const totalTouch=TEAMS.reduce((a,t)=>a+Object.keys(t.roles).length,0);
+document.getElementById('toggle').innerHTML=
+  '<b>'+TEAMS.length+'</b> functional groups · <b>'+COLS.length+'</b> documents · <b>'+totalTouch+'</b> touch-points. '+
+  'A dense column = a document many groups must align on (the CSR, the application) — those are the coordination bottlenecks where cycle-time is lost and where automation of hand-offs pays back most.';
+
+// ---- interactions ----
+const card=document.getElementById('card');
+function clearDim(){
+  tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('rowsel','dimmed'));
+  tbody.querySelectorAll('td.cell').forEach(td=>td.classList.remove('colsel'));
+}
+
+function roleChips(pairs){
+  // pairs: [{label, role}]
+  const byRole={A:[],C:[],R:[],S:[]};
+  pairs.forEach(p=>{byRole[p.role].push(p.label);});
+  let html='';
+  ['A','C','R','S'].forEach(rk=>{
+    if(byRole[rk].length){
+      const r=ROLES[rk];
+      html+='<div class="roleblock"><span class="roletag" style="background:'+r.col+'">'+r.label+'</span>'+
+        '<div class="chips">'+byRole[rk].map(l=>'<span class="chip">'+l+'</span>').join('')+'</div></div>';
+    }
+  });
+  return html;
+}
+
+function selectTeam(ti){
+  clearDim();
+  const t=TEAMS[ti];
+  tbody.querySelectorAll('tr').forEach(tr=>{if(+tr.dataset.ti!==ti)tr.classList.add('dimmed');else tr.classList.add('rowsel');});
+  const pairs=Object.entries(t.roles).map(([doc,role])=>({label:COLS[colIndex[doc]].full,role}));
+  card.style.setProperty('--accent',t.tcol);
+  card.innerHTML=
+    '<div class="ch"><div class="ctag">Functional group · '+t.sub+'</div>'+
+      '<div class="ct">'+t.id+'</div>'+
+      '<div class="cmeta">touches '+pairs.length+' documents</div></div>'+
+    '<div class="cbody"><p style="font-size:14px;line-height:1.55;color:#33414c;margin:12px 0 4px">'+t.about+'</p>'+
+      roleChips(pairs)+'</div>';
+}
+
+function selectDoc(ci){
+  clearDim();
+  const c=COLS[ci];
+  const involved=[];
+  TEAMS.forEach((t,ti)=>{
+    const role=t.roles[c.id];
+    const tr=tbody.querySelector('tr[data-ti="'+ti+'"]');
+    if(role){involved.push({label:t.id,role});}
+    else if(tr)tr.classList.add('dimmed');
+    const cell=tbody.querySelector('td.cell[data-ti="'+ti+'"][data-ci="'+ci+'"]');
+    if(cell)cell.classList.add('colsel');
+  });
+  card.style.setProperty('--accent',c.pcol);
+  card.innerHTML=
+    '<div class="ch"><div class="ctag">Document · assembled by</div>'+
+      '<div class="ct">'+c.full+'</div>'+
+      '<div class="cmeta">'+involved.length+' groups involved · '+
+        (involved.length>=5?'a high-coordination document — dense hand-offs, a cycle-time bottleneck':'a narrower-ownership document')+'</div></div>'+
+    '<div class="cbody">'+roleChips(involved)+'</div>';
+}
+
+// open on the CSR — the densest coordination document
+selectDoc(colIndex['CSR']);
+</script>

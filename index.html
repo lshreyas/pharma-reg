@@ -1,0 +1,87 @@
+<!doctype html>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pharma Reg — Mockups</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap');
+  :root {
+    --ink: #14181D;
+    --paper: #FBFAF8;
+    --line: #DDE0E2;
+    --dim: #6B7580;
+    --card: #FFFFFF;
+    --accent: #2F6F6A;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--paper); color: var(--ink); }
+  body {
+    font-family: 'Newsreader', Georgia, serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 64px 24px 96px;
+    max-width: 780px;
+    margin: 0 auto;
+    line-height: 1.55;
+  }
+  header { margin-bottom: 40px; }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 8px;
+  }
+  h1 { font-size: 34px; font-weight: 500; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .sub { color: var(--dim); font-size: 17px; margin: 0; }
+  ul.mocks { list-style: none; padding: 0; margin: 32px 0 0; }
+  ul.mocks li {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 20px 22px;
+    margin-bottom: 12px;
+  }
+  ul.mocks a {
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 19px;
+    display: inline-block;
+    margin-bottom: 4px;
+  }
+  ul.mocks a:hover { color: var(--accent); text-decoration: underline; }
+  ul.mocks p { margin: 4px 0 0; color: var(--dim); font-size: 15px; }
+  footer {
+    margin-top: 56px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    color: var(--dim);
+    font-size: 13px;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+</style>
+
+<header>
+  <div class="eyebrow">Pharma Reg · Mockups</div>
+  <h1>Regulatory authoring, grounded.</h1>
+  <p class="sub">Interactive mockups exploring what human-in-the-loop, evidence-linked authoring looks like for pharmaceutical regulatory documents.</p>
+</header>
+
+<ul class="mocks">
+  <li>
+    <a href="mocks/regulatory-document-map.html">Regulatory document map</a>
+    <p>Lifecycle view of the documents a drug program produces — preclinical through post-market — and how they connect.</p>
+  </li>
+  <li>
+    <a href="mocks/component-reuse-matrix.html">Content building blocks — reuse map</a>
+    <p>Which reusable content components appear in which regulatory documents, colored by discipline.</p>
+  </li>
+  <li>
+    <a href="mocks/org-interaction-matrix.html">Who touches what — org × documents</a>
+    <p>Which pharma org functions interact with which regulatory documents, and how.</p>
+  </li>
+</ul>
+
+<footer>
+  See the <a href="regulatory_filing_consistency_analysis_plan.md">consistency analysis plan</a> for the pipeline this is heading toward.
+</footer>

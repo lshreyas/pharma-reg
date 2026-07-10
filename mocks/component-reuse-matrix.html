@@ -1,0 +1,310 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Content Building Blocks — Reuse Map</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap');
+  :root{
+    --ink:#14181D;--paper:#FBFAF8;--line:#DDE0E2;--dim:#6B7580;--card:#fff;
+    --clindata:#2F6F6A;--clinpharm:#3C5AA6;--nonclin:#B07B2C;--design:#7A4A7E;--cmc:#4A7A52;--reg:#9B4C52;
+    --clindata-w:#DEEDEB;--clinpharm-w:#E1E7F4;--nonclin-w:#F6ECD9;--design-w:#EDE2EE;--cmc-w:#E2EFE4;--reg-w:#F2E2E3;
+  }
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  html,body{margin:0;background:var(--paper);color:var(--ink)}
+  body{font-family:'Newsreader',Georgia,serif;padding:24px clamp(14px,3.5vw,40px) 60px;max-width:1280px;margin:0 auto}
+  .mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
+  header{border-bottom:2px solid var(--ink);padding-bottom:14px}
+  .kicker{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+  h1{font-size:clamp(22px,3.4vw,32px);font-weight:600;letter-spacing:-.01em;margin:6px 0 0}
+  .sub{font-size:15px;color:#3a4650;max-width:720px;margin:10px 0 0;line-height:1.55}
+  .statline{display:flex;flex-wrap:wrap;gap:26px;margin:16px 0 6px}
+  .statbig{font-family:'IBM Plex Mono',monospace}
+  .statbig .n{font-size:26px;font-weight:600;color:var(--ink)}
+  .statbig .l{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-top:2px}
+
+  .legend{display:flex;flex-wrap:wrap;gap:12px;margin:14px 0 18px;font-family:'IBM Plex Mono',monospace;font-size:11px}
+  .legend span{display:inline-flex;align-items:center;gap:7px;color:#3a4650;cursor:default}
+  .sw{width:11px;height:11px;border-radius:2px;flex:0 0 auto}
+
+  .matrixwrap{border:1px solid var(--line);border-radius:8px;background:#fff;overflow:auto;max-width:100%}
+  table.mx{border-collapse:collapse;font-family:'IBM Plex Mono',monospace}
+  table.mx th,table.mx td{border:1px solid #EDEFF0}
+  /* corner + block label column */
+  .corner{position:sticky;left:0;top:0;z-index:6;background:#fff;min-width:210px;text-align:left;
+          font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);padding:8px 10px;vertical-align:bottom}
+  thead th.doc{position:sticky;top:0;z-index:4;background:#fff;height:118px;width:30px;padding:0}
+  .docinner{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;font-size:10.5px;color:#33414c;
+            padding:8px 0;margin:0 auto;cursor:pointer;letter-spacing:.02em}
+  thead th.doc:hover .docinner{color:var(--ink)}
+  .grouphead td{background:#F7F5F1;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);
+                padding:5px 10px;position:sticky;left:0}
+  th.block{position:sticky;left:0;z-index:3;background:#fff;text-align:left;font-family:'Newsreader',serif;
+           font-weight:500;font-size:13.5px;color:#22282e;padding:7px 10px 7px 12px;min-width:210px;cursor:pointer;
+           border-left:3px solid var(--bcol)}
+  th.block .rc{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);margin-left:6px}
+  th.block:hover{background:#FCFBF9}
+  td.cell{width:30px;height:30px;text-align:center;vertical-align:middle;padding:0}
+  .dot{width:12px;height:12px;border-radius:3px;margin:0 auto;background:var(--bcol);opacity:.9}
+  .empty{width:4px;height:4px;border-radius:50%;margin:0 auto;background:#E4E7E9}
+
+  tr.rowsel th.block{background:#fff;box-shadow:inset 0 0 0 9999px rgba(0,0,0,0)}
+  tr.rowsel td.cell .dot{box-shadow:0 0 0 3px var(--bwash)}
+  .dim td.cell .dot,.dim th.block{opacity:.28}
+  td.colsel{background:var(--colwash)}
+  .dot.colhit{box-shadow:0 0 0 3px var(--colring)}
+
+  .detail{margin-top:22px;display:grid;grid-template-columns:1fr;gap:0}
+  .card{background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden;border-top:4px solid var(--bcol)}
+  .ch{padding:15px 18px;border-bottom:1px solid var(--line)}
+  .ctag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--bcol)}
+  .ct{font-size:20px;font-weight:600;margin:5px 0 2px;letter-spacing:-.01em}
+  .cmeta{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim)}
+  .cbody{display:grid;grid-template-columns:1fr 1fr;gap:0}
+  .cbody .b{padding:13px 18px;border-bottom:1px solid var(--line)}
+  .cbody .b:nth-child(odd){border-right:1px solid var(--line)}
+  .b .k{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+  .b .v{font-size:14px;margin-top:4px;line-height:1.4}
+  .appears{padding:14px 18px;border-bottom:1px solid var(--line)}
+  .appears h4{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin:0 0 9px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:3px 9px;border-radius:4px;background:var(--bwash);color:var(--bcol);white-space:nowrap}
+  .auto{padding:14px 18px;font-size:14px;line-height:1.55;color:#2a343d}
+  .auto .flag{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:3px;margin-right:8px;vertical-align:1px;background:var(--bwash);color:var(--bcol)}
+  .hint{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--dim);text-align:center;padding:26px}
+  .foot{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:var(--dim);line-height:1.55;font-family:'IBM Plex Mono',monospace}
+  .toggle{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);margin:10px 0 0}
+  .toggle b{color:var(--ink)}
+</style>
+
+<header>
+  <div class="kicker">Content Architecture · Component Reuse</div>
+  <h1>Documents are assemblies. Facts are the atoms.</h1>
+  <p class="sub">Underneath the dossier, a small set of building blocks — a results table, a mechanism paragraph, a dosing statement, a safety narrative — gets re-expressed across many documents. Each row is one building block; each column is a document. A filled cell means the block shows up there. Click a <b>block</b> to watch it fan out across the submission, or a <b>document header</b> to see what it’s assembled from.</p>
+</header>
+
+<div class="statline">
+  <div class="statbig"><div class="n" id="s-blocks">17</div><div class="l">building blocks</div></div>
+  <div class="statbig"><div class="n" id="s-docs">16</div><div class="l">documents</div></div>
+  <div class="statbig"><div class="n" id="s-max">8×</div><div class="l">max reuse (mechanism of action)</div></div>
+  <div class="statbig"><div class="n" id="s-links">—</div><div class="l">total appearances</div></div>
+</div>
+
+<div class="legend" id="legend"></div>
+
+<div class="matrixwrap"><table class="mx" id="mx"></table></div>
+<div class="toggle">The <b>source colour</b> of each block is the function that owns the fact — where it’s born. A horizontal streak = one fact copy-pasted into many documents (drift risk). A vertical streak = one document assembled from many upstream sources.</div>
+
+<div class="detail"><div class="card" id="card"><div class="hint">Select a block or a document to inspect it.</div></div></div>
+
+<div class="foot">
+  Appearance mappings are representative of standard ICH/CTD practice, not an exhaustive audit — some blocks appear in additional minor locations (e.g. ClinicalTrials.gov, promotional review, IDMP). Section references follow US labeling (PLR) and ICH E3/M4 conventions. The point is the <em>pattern</em> of reuse, which is what makes component authoring and grounded generation valuable.
+</div>
+
+<script>
+const SOURCES={
+  clindata:{label:'Clinical data (biostatistics · SDTM/ADaM)',col:'var(--clindata)',w:'var(--clindata-w)'},
+  clinpharm:{label:'Clinical pharmacology',col:'var(--clinpharm)',w:'var(--clinpharm-w)'},
+  nonclin:{label:'Nonclinical',col:'var(--nonclin)',w:'var(--nonclin-w)'},
+  design:{label:'Study design (protocol · SAP)',col:'var(--design)',w:'var(--design-w)'},
+  cmc:{label:'CMC / quality',col:'var(--cmc)',w:'var(--cmc-w)'},
+  reg:{label:'Regulatory / integrated judgment',col:'var(--reg)',w:'var(--reg-w)'},
+};
+
+const COLS=[
+  {id:'IB',full:'Investigator’s Brochure'},
+  {id:'PROT',full:'Clinical Protocol'},
+  {id:'ICF',full:'Informed Consent Form'},
+  {id:'SAP',full:'Statistical Analysis Plan'},
+  {id:'CSR',full:'Clinical Study Report'},
+  {id:'ISS/ISE',full:'Integrated Summary of Safety / Efficacy'},
+  {id:'M2.3',full:'Module 2.3 — Quality Overall Summary'},
+  {id:'M2.4',full:'Module 2.4 — Nonclinical Overview'},
+  {id:'M2.5',full:'Module 2.5 — Clinical Overview'},
+  {id:'M2.6',full:'Module 2.6 — Nonclinical Summaries'},
+  {id:'M2.7',full:'Module 2.7 — Clinical Summary'},
+  {id:'M3',full:'Module 3 — Quality / CMC'},
+  {id:'LABEL',full:'Labeling (USPI / SmPC)'},
+  {id:'PSUR',full:'PSUR / PBRER (periodic safety)'},
+  {id:'RMP',full:'Risk Management Plan / REMS'},
+  {id:'PUB',full:'Journal publication / registry'},
+];
+
+// building blocks
+const BLOCKS=[
+  {g:'clindata',id:'demo',label:'Demographics & baseline (Table 1)',type:'Table',sot:'ADaM ADSL dataset → TLF',fmt:'Standardized table',
+   cols:['CSR','ISS/ISE','M2.5','M2.7','PUB'],
+   auto:'Deterministic from ADSL. Generate once; guarantee byte-identical values everywhere it appears. Pure consistency win.'},
+  {g:'clindata',id:'eff',label:'Primary efficacy result',type:'Table',sot:'ADaM ADEFF → primary-endpoint TLF',fmt:'Result table + text',
+   cols:['CSR','ISS/ISE','M2.5','M2.7','LABEL','PUB'],
+   auto:'The single most-reused *result* — it even lands in the label (§14). One source table, six renderings: the canonical cross-document consistency-check target.'},
+  {g:'clindata',id:'ae',label:'Adverse-event / TEAE tables',type:'Table',sot:'ADaM ADAE → safety TLFs',fmt:'Summary tables',
+   cols:['CSR','ISS/ISE','M2.5','M2.7','LABEL','PSUR','RMP'],
+   auto:'Highest-fan-out safety content (7 docs). Re-derived per document today; automating generation from ADAE removes drift between CSR, label §6, and PSUR.'},
+  {g:'clindata',id:'narr',label:'Patient safety narratives',type:'Narrative',sot:'Safety DB rows (AE/CM/DM domains)',fmt:'Structured prose',
+   cols:['CSR','ISS/ISE','PSUR'],
+   auto:'The beachhead. Generated from the same rows that feed ICSRs and PSUR listings — build the grounded-narrative engine once, reuse it across CSR and pharmacovigilance.'},
+  {g:'clindata',id:'disp',label:'Disposition / patient flow',type:'Table',sot:'ADaM ADSL / disposition domain',fmt:'CONSORT-style flow',
+   cols:['CSR','M2.7','PUB'],
+   auto:'Deterministic counts from disposition data; templated flow diagram — automate and reconcile against enrollment numbers everywhere.'},
+
+  {g:'clinpharm',id:'pk',label:'PK parameters',type:'Table',sot:'Clinical pharmacology analysis',fmt:'Parameter table',
+   cols:['IB','CSR','M2.6','M2.7','LABEL','PUB'],
+   auto:'Same parameter set restated from the IB through the label (§12.3). Structured values — propagate and reconcile across 6 documents.'},
+  {g:'clinpharm',id:'dose',label:'Dosing / posology',type:'Statement',sot:'Protocol / clin-pharm rationale',fmt:'Structured statement',
+   cols:['IB','PROT','ICF','CSR','M2.5','M2.7','LABEL'],
+   auto:'Appears in 7 documents from protocol to label (§2). A canonical component-authoring case: define once, and every downstream mention updates together.'},
+
+  {g:'nonclin',id:'moa',label:'Mechanism of action',type:'Statement',sot:'Nonclinical pharmacology',fmt:'Prose paragraph',
+   cols:['IB','PROT','CSR','M2.4','M2.5','M2.6','LABEL','PUB'],
+   auto:'The champion reuse case — one paragraph in 8 documents. Pure prose propagation from a single source-of-truth statement; the textbook component-authoring win.'},
+  {g:'nonclin',id:'tox',label:'Nonclinical toxicology findings',type:'Table',sot:'Tox study reports (SEND)',fmt:'Findings tables + text',
+   cols:['IB','PROT','M2.4','M2.6','LABEL'],
+   auto:'Summarized upward from Module 4 study reports into 2.4/2.6 and the label (§13). Structured SEND data enables drafting the summaries from the source reports.'},
+
+  {g:'design',id:'ie',label:'Inclusion / exclusion criteria',type:'Design',sot:'Protocol',fmt:'Structured list',
+   cols:['PROT','ICF','CSR','M2.7','PUB'],
+   auto:'Authored in the protocol, restated in ICF, CSR methods, and summaries. A structured list — transform and propagate rather than re-type.'},
+  {g:'design',id:'meth',label:'Study design / methodology',type:'Design',sot:'Protocol + SAP',fmt:'Prose + schema',
+   cols:['PROT','SAP','CSR','M2.5','M2.7','PUB'],
+   auto:'The protocol is the source of truth; CSR §9 and the summaries re-express it. Protocol-to-document transformation is a high-value generation task.'},
+  {g:'design',id:'ep',label:'Endpoints & estimands',type:'Design',sot:'Protocol + SAP (ICH E9 R1)',fmt:'Structured definitions',
+   cols:['PROT','SAP','CSR','M2.7','PUB'],
+   auto:'Precise, judgment-set definitions authored once and referenced everywhere — propagate verbatim; never paraphrase (paraphrase = regulatory risk).'},
+
+  {g:'cmc',id:'ds',label:'Drug substance / product description',type:'Statement',sot:'CMC / quality',fmt:'Technical prose',
+   cols:['IB','M2.3','M3'],
+   auto:'Originates in Module 3; summarized into 2.3 (QOS). Lower reuse and highly technical — automate the 3→2.3 summarization, not net-new prose.'},
+  {g:'cmc',id:'mfg',label:'Manufacturing & specifications',type:'Data',sot:'CMC / quality (moving to IDMP)',fmt:'Specs + process',
+   cols:['M2.3','M3'],
+   auto:'Data- and equipment-specific, low repetition — weakest generation fit. Value is structured data management (IDMP) and internal consistency.'},
+
+  {g:'reg',id:'ind',label:'Indication statement',type:'Statement',sot:'Regulatory / clinical',fmt:'Controlled statement',
+   cols:['PROT','M2.5','LABEL','PSUR','RMP','PUB'],
+   auto:'The legally-controlled claim, restated across 6 documents and negotiated with the agency. Component-author the approved wording; propagate on change.'},
+  {g:'reg',id:'br',label:'Benefit–risk assessment',type:'Statement',sot:'Integrated clinical judgment',fmt:'Argued prose',
+   cols:['CSR','M2.5','PSUR','RMP'],
+   auto:'The most judgment-heavy block here — LLM assists (evidence assembly, consistency) but the argument stays human. Lower autonomy, high assist value.'},
+  {g:'reg',id:'ci',label:'Contraindications & warnings',type:'Statement',sot:'Accumulated safety (RSI)',fmt:'Controlled statements',
+   cols:['IB','LABEL','PSUR','RMP'],
+   auto:'Flows from the IB reference safety info into the label (§4/§5) and risk documents. High-stakes wording — propagate under tight human/agency control.'},
+];
+
+// ---- compute ----
+const colIndex={}; COLS.forEach((c,i)=>colIndex[c.id]=i);
+let totalLinks=0; BLOCKS.forEach(b=>totalLinks+=b.cols.length);
+document.getElementById('s-blocks').textContent=BLOCKS.length;
+document.getElementById('s-docs').textContent=COLS.length;
+document.getElementById('s-links').textContent=totalLinks;
+
+// legend
+const legend=document.getElementById('legend');
+Object.values(SOURCES).forEach(s=>{
+  const el=document.createElement('span');
+  el.innerHTML='<i class="sw" style="background:'+s.col+'"></i>'+s.label;
+  legend.appendChild(el);
+});
+
+// ---- build matrix ----
+const mx=document.getElementById('mx');
+const thead=document.createElement('thead');
+const htr=document.createElement('tr');
+const corner=document.createElement('th');
+corner.className='corner';corner.textContent='Block  ╲  Document';
+htr.appendChild(corner);
+COLS.forEach((c,ci)=>{
+  const th=document.createElement('th');th.className='doc';th.dataset.ci=ci;
+  const inner=document.createElement('div');inner.className='docinner';inner.textContent=c.id;
+  inner.title=c.full;
+  th.appendChild(inner);
+  th.addEventListener('click',()=>selectDoc(ci));
+  htr.appendChild(th);
+});
+thead.appendChild(htr);mx.appendChild(thead);
+
+const tbody=document.createElement('tbody');
+let lastG=null;
+BLOCKS.forEach((b,bi)=>{
+  const src=SOURCES[b.g];
+  if(b.g!==lastG){
+    const gr=document.createElement('tr');gr.className='grouphead';
+    const td=document.createElement('td');td.colSpan=COLS.length+1;td.textContent=src.label;
+    td.style.borderLeft='3px solid '+src.col;
+    gr.appendChild(td);tbody.appendChild(gr);
+    lastG=b.g;
+  }
+  const tr=document.createElement('tr');tr.dataset.bi=bi;
+  const th=document.createElement('th');th.className='block';
+  th.style.setProperty('--bcol',src.col);th.style.setProperty('--bwash',src.w);
+  th.innerHTML=b.label+'<span class="rc">'+b.cols.length+'×</span>';
+  th.addEventListener('click',()=>selectBlock(bi));
+  tr.appendChild(th);
+  const hit=new Set(b.cols.map(c=>colIndex[c]));
+  COLS.forEach((c,ci)=>{
+    const td=document.createElement('td');td.className='cell';td.dataset.ci=ci;
+    if(hit.has(ci)){
+      const d=document.createElement('div');d.className='dot';
+      d.style.setProperty('--bcol',src.col);td.appendChild(d);
+    }else{const e=document.createElement('div');e.className='empty';td.appendChild(e);}
+    tr.appendChild(td);
+  });
+  tbody.appendChild(tr);
+});
+mx.appendChild(tbody);
+
+// ---- interactions ----
+const card=document.getElementById('card');
+function clearState(){
+  tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('rowsel','dim'));
+  tbody.querySelectorAll('td.cell').forEach(td=>{td.classList.remove('colsel');td.style.removeProperty('--colwash');});
+  tbody.querySelectorAll('.dot').forEach(d=>d.classList.remove('colhit'));
+}
+
+function selectBlock(bi){
+  clearState();
+  const b=BLOCKS[bi],src=SOURCES[b.g];
+  tbody.querySelectorAll('tr').forEach(tr=>{
+    if(tr.dataset.bi===undefined) return;
+    if(+tr.dataset.bi===bi){tr.classList.add('rowsel');}
+    else if(tr.dataset.bi!==undefined){tr.classList.add('dim');}
+  });
+  const chips=b.cols.map(c=>'<span class="chip">'+c+'</span>').join('');
+  card.style.setProperty('--bcol',src.col);card.style.setProperty('--bwash',src.w);
+  card.innerHTML=
+    '<div class="ch"><div class="ctag">'+b.type+' · source: '+src.label.split(' (')[0]+'</div>'+
+      '<div class="ct">'+b.label+'</div>'+
+      '<div class="cmeta">appears in '+b.cols.length+' documents</div></div>'+
+    '<div class="cbody">'+
+      '<div class="b"><div class="k">Source of truth</div><div class="v">'+b.sot+'</div></div>'+
+      '<div class="b"><div class="k">Format</div><div class="v">'+b.fmt+'</div></div>'+
+    '</div>'+
+    '<div class="appears"><h4>Reappears in</h4><div class="chips">'+chips+'</div></div>'+
+    '<div class="auto"><span class="flag">Automation</span>'+b.auto+'</div>';
+}
+
+function selectDoc(ci){
+  clearState();
+  const col=COLS[ci];
+  // find blocks present in this doc
+  const present=BLOCKS.filter(b=>b.cols.map(c=>colIndex[c]).includes(ci));
+  tbody.querySelectorAll('tr').forEach(tr=>{
+    if(tr.dataset.bi===undefined) return;
+    const b=BLOCKS[+tr.dataset.bi];
+    const inDoc=b.cols.map(c=>colIndex[c]).includes(ci);
+    if(!inDoc)tr.classList.add('dim');
+    const cell=tr.querySelector('td.cell[data-ci="'+ci+'"]');
+    if(cell){cell.classList.add('colsel');cell.style.setProperty('--colwash','#F4F2EE');
+      const dot=cell.querySelector('.dot');if(dot){dot.classList.add('colhit');dot.style.setProperty('--colring','#CBCFD2');}}
+  });
+  const chips=present.map(b=>'<span class="chip" style="--bcol:'+SOURCES[b.g].col+';--bwash:'+SOURCES[b.g].w+'">'+b.label+'</span>').join('');
+  card.style.setProperty('--bcol','#566270');card.style.setProperty('--bwash','#EEF0F1');
+  card.innerHTML=
+    '<div class="ch"><div class="ctag">Document · assembled view</div>'+
+      '<div class="ct">'+col.full+'</div>'+
+      '<div class="cmeta">assembled from '+present.length+' building blocks</div></div>'+
+    '<div class="appears"><h4>Built from</h4><div class="chips">'+chips+'</div></div>'+
+    '<div class="auto"><span class="flag" style="--bwash:#EEF0F1;--bcol:#566270">Read this way</span>'+
+      'This document isn’t written from scratch — it’s an assembly of blocks owned by other functions. The colours show how many <em>different</em> sources feed it. Automation value: pull each block from its source of truth and assemble, instead of re-typing and reconciling by hand.</div>';
+}
+
+// open on the champion reuse case
+selectBlock(BLOCKS.findIndex(b=>b.id==='moa'));
+</script>
