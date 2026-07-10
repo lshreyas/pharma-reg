@@ -1,0 +1,31 @@
+id: pembrolizumab_lung
+name: Pembrolizumab (metastatic non-squamous NSCLC, 1L combo)
+drug_name: pembrolizumab
+brand_name: KEYTRUDA
+indication: metastatic non-squamous NSCLC, first-line, in combination with chemotherapy
+
+# Canonical aliases used by the entity resolver.
+aliases:
+  drug:
+    pembrolizumab:
+      - Keytruda
+      - KEYTRUDA
+      - MK-3475
+      - Sch 900475
+  trial:
+    KEYNOTE-189:
+      - MK-3475-189
+      - NCT02578680
+
+sources:
+  - kind: clinicaltrials
+    id: NCT02578680
+    doc_type: clinicaltrials
+    jurisdiction: global
+    title: "KEYNOTE-189 (NCT02578680) — ClinicalTrials.gov record"
+
+  - kind: openfda_label
+    id: KEYTRUDA
+    doc_type: fda_label
+    jurisdiction: US
+    title: "KEYTRUDA US Prescribing Information (openFDA)"

@@ -1,0 +1,21 @@
+[project]
+name = "pharma-reg"
+version = "0.1.0"
+description = "Regulatory filing consistency analysis pipeline"
+requires-python = ">=3.10"
+dependencies = [
+    "anthropic>=0.40.0",
+    "pydantic>=2.5",
+    "httpx>=0.27",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+pharma-reg = "pharma_reg.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["pharma_reg*"]
