@@ -131,8 +131,31 @@ def extract_chunk(
     return parsed.facts
 
 
+def _already_extracted_chunk_ids(out_path: Path) -> set[str]:
+    """Return chunk_ids already present in the JSONL so we can skip them."""
+    if not out_path.exists():
+        return set()
+    seen: set[str] = set()
+    for line in out_path.read_text().splitlines():
+        if not line.strip():
+            continue
+        try:
+            f = Fact.model_validate_json(line)
+        except Exception:
+            continue
+        if f.chunk_id:
+            seen.add(f.chunk_id)
+    return seen
+
+
 def extract_program(program_id: str, max_chunks: int | None = None) -> dict[str, int]:
-    """Extract facts for every doc in a program. Returns per-doc fact counts."""
+    """Extract facts for every doc in a program.
+
+    Resumable: append mode plus a per-chunk flush. If the JSONL already has
+    facts for a chunk_id, that chunk is skipped — safe to re-run after a
+    network drop or Ctrl-C. `max_chunks` caps unprocessed chunks per doc, not
+    total chunks including already-extracted ones.
+    """
     if not os.environ.get("ANTHROPIC_API_KEY"):
         raise RuntimeError(
             "ANTHROPIC_API_KEY not set. Copy .env.example to .env and fill it in, "
@@ -150,22 +173,32 @@ def extract_program(program_id: str, max_chunks: int | None = None) -> dict[str,
 
     for doc in docs:
         chunks = load_chunks(program_id, doc.id)
-        if max_chunks is not None:
-            chunks = chunks[:max_chunks]
         out_path = out_dir / f"{doc.id}.jsonl"
+        done = _already_extracted_chunk_ids(out_path)
+        todo = [c for c in chunks if c.id not in done]
+        if max_chunks is not None:
+            todo = todo[:max_chunks]
+
+        if done:
+            print(f"  [{doc.id}] resuming: {len(done)} chunk(s) already extracted, "
+                  f"{len(todo)} to go")
+
         n_facts = 0
-        with out_path.open("w") as f:
-            for i, chunk in enumerate(chunks, start=1):
+        # Line-buffered append so a Ctrl-C or crash leaves the file consistent
+        # up to the last completed chunk.
+        with out_path.open("a", buffering=1) as f:
+            for i, chunk in enumerate(todo, start=1):
                 facts = extract_chunk(client, program, doc.title, chunk)
                 for fact in facts:
                     f.write(fact.model_dump_json() + "\n")
+                f.flush()  # belt-and-suspenders; line buffering above should suffice
                 n_facts += len(facts)
                 print(
-                    f"  [{doc.id}] chunk {i}/{len(chunks)}  "
+                    f"  [{doc.id}] chunk {i}/{len(todo)} ({chunk.id})  "
                     f"section={chunk.section}  facts={len(facts)}"
                 )
         counts[doc.id] = n_facts
-        print(f"  → {doc.id}: {n_facts} facts")
+        print(f"  → {doc.id}: {n_facts} new facts this run")
 
     return counts
 
