@@ -24,4 +24,6 @@ def db_path(program_id: str) -> Path:
 
 
 def model_id() -> str:
-    return os.environ.get("PHARMA_REG_MODEL", "claude-opus-4-7")
+    # Sonnet 4.6 is the default: excellent at structured extraction and roughly
+    # half the cost of Opus 4.7 for this workload. Override with PHARMA_REG_MODEL.
+    return os.environ.get("PHARMA_REG_MODEL", "claude-sonnet-4-6")

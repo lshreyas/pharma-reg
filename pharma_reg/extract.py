@@ -82,27 +82,48 @@ def extract_chunk(
     doc_title: str,
     chunk: Chunk,
 ) -> list[Fact]:
-    response = client.messages.parse(
-        model=model_id(),
-        max_tokens=8000,
-        thinking={"type": "adaptive"},
-        system=[
-            {
-                "type": "text",
-                "text": SYSTEM_PROMPT,
-                "cache_control": {"type": "ephemeral"},
-            }
-        ],
-        messages=[
-            {"role": "user", "content": _user_message(program, doc_title, chunk)}
-        ],
-        output_format=ExtractionResponse,
-    )
-    parsed = response.parsed_output
-    if parsed is None:
+    # Streaming so we don't hit the SDK's non-streaming timeout guard at high
+    # max_tokens; 24k gives comfortable headroom for thinking + JSON on rich
+    # chunks. See the shared claude-api guidance on max_tokens ceilings.
+    try:
+        with client.messages.stream(
+            model=model_id(),
+            max_tokens=24000,
+            thinking={"type": "adaptive"},
+            system=[
+                {
+                    "type": "text",
+                    "text": SYSTEM_PROMPT,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ],
+            messages=[
+                {"role": "user", "content": _user_message(program, doc_title, chunk)}
+            ],
+            output_config={"format": {"type": "json_schema",
+                                       "schema": ExtractionResponse.model_json_schema()}},
+        ) as stream:
+            final = stream.get_final_message()
+    except anthropic.APIError as e:
+        print(f"    ! API error on {chunk.id}: {e}; skipping chunk")
         return []
 
-    # Attach provenance the model doesn't need to supply.
+    # With output_config.format=json_schema the first (and only) text block is
+    # valid JSON. Truncation still shows up as `stop_reason == "max_tokens"`;
+    # treat that as a data-quality miss and skip rather than crashing the run.
+    if final.stop_reason == "max_tokens":
+        print(f"    ! {chunk.id}: hit max_tokens; skipping chunk")
+        return []
+
+    text = next((b.text for b in final.content if b.type == "text"), None)
+    if not text:
+        return []
+    try:
+        parsed = ExtractionResponse.model_validate_json(text)
+    except Exception as e:  # noqa: BLE001 — surface any parse failure and continue
+        print(f"    ! {chunk.id}: JSON validation failed ({e.__class__.__name__}); skipping chunk")
+        return []
+
     for f in parsed.facts:
         f.doc_id = chunk.doc_id
         f.chunk_id = chunk.id

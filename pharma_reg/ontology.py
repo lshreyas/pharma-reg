@@ -11,7 +11,12 @@ from __future__ import annotations
 from enum import Enum
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+
+
+# Structured outputs require `additionalProperties: false` on every object
+# schema; `extra="forbid"` makes Pydantic emit that in `model_json_schema()`.
+_STRICT = ConfigDict(extra="forbid")
 
 
 class EntityType(str, Enum):
@@ -68,18 +73,22 @@ class Fact(BaseModel):
     before KG load, preserving the original in `entity_id_raw`.
     """
 
+    model_config = _STRICT
+
+    # Fields intentionally use only descriptions (no min/max/ge/le) because
+    # the Messages API JSON-schema subset rejects those constraints. Bounds
+    # checks are done client-side after `model_validate_json`.
     entity_type: EntityType
-    entity_id: str = Field(min_length=1, max_length=200)
-    property: str = Field(min_length=1, max_length=100)
+    entity_id: str = Field(description="Entity ID as written in the source (verbatim, not normalized).")
+    property: str = Field(description="Property name; prefer snake_case values from the closed vocabulary.")
     value: str = Field(
         description="Verbatim value string as extracted (e.g. '616', '72%', 'randomized 1:1')."
     )
     unit: str | None = Field(default=None, description="e.g. 'patients', '%', 'months'.")
     quote: str = Field(
-        min_length=1,
-        description="Exact supporting quotation from the source chunk.",
+        description="Exact supporting quotation from the source chunk (≤ 250 chars)."
     )
-    confidence: float = Field(ge=0.0, le=1.0)
+    confidence: float = Field(description="Calibrated confidence between 0.0 and 1.0.")
 
     # These are attached by the extractor wrapper, not the model call.
     doc_id: str | None = None
@@ -90,6 +99,8 @@ class Fact(BaseModel):
 
 class ExtractionResponse(BaseModel):
     """What the model is asked to return per chunk."""
+
+    model_config = _STRICT
 
     facts: list[Fact]
 
