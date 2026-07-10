@@ -12,7 +12,15 @@ Regulatory filing consistency analysis — pipeline plans, working mocks, and (s
 
 Live on GitHub Pages: <https://lshreyas.github.io/pharma-reg/>
 
-The two `.html` mocks render as-is in the browser. The `.jsx` files in `mocks/` are React source; they live in the repo for reference but aren't published to Pages.
+| Mock | Live | Source |
+| --- | --- | --- |
+| Regulatory document map | [view](https://lshreyas.github.io/pharma-reg/mocks/regulatory-document-map.html) | [`mocks/regulatory-document-map.html`](mocks/regulatory-document-map.html) |
+| Content building blocks — reuse map | [view](https://lshreyas.github.io/pharma-reg/mocks/component-reuse-matrix.html) | [`mocks/component-reuse-matrix.html`](mocks/component-reuse-matrix.html) |
+| Who touches what — org × documents | [view](https://lshreyas.github.io/pharma-reg/mocks/org-interaction-matrix.html) | [`mocks/org-interaction-matrix.html`](mocks/org-interaction-matrix.html) |
+| CSR authoring — HITL (React source) | — | [`mocks/csr-authoring-hitl.jsx`](mocks/csr-authoring-hitl.jsx) |
+| Patient safety narrative — grounded generation (React source) | — | [`mocks/narrative-gen-mockup.jsx`](mocks/narrative-gen-mockup.jsx) |
+
+The `.html` mocks render as-is in the browser. The `.jsx` files are React source; they live in the repo for reference but aren't published to Pages.
 
 ## What's coming
 
